@@ -3,12 +3,10 @@ package com.ebook.payment_service.Entity;
 import com.ebook.payment_service.DTO.PaymentStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Getter
@@ -21,7 +19,7 @@ public class Payment {
     private String customerId;
     private PaymentStatus paymentStatus;
     private double amount;
-    private LocalDateTime paymentDate;
+    private LocalDate paymentDate;
     private String transactionId;
 
 

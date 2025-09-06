@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -13,6 +15,6 @@ public class PaymentResponseDTO {
     private String customerId;
     private PaymentStatus paymentStatus;
     private double amount;
-    private String paymentDate;
+    private LocalDate paymentDate;
     private String transactionId;
 }

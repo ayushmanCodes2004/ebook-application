@@ -3,8 +3,14 @@ package com.ebook.order_service.Service;
 import com.ebook.order_service.DTO.*;
 import com.ebook.order_service.Entity.BookOrderItem;
 import com.ebook.order_service.Entity.Orders;
+import com.ebook.order_service.Events.OrderCreatedEvent;
 import com.ebook.order_service.Repository.BookOrderItemRepository;
 import com.ebook.order_service.Repository.OrderRepository;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -13,17 +19,15 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class OrderService {
 
     private final OrderRepository orderRepository;
     private final BookOrderItemRepository bookOrderItemRepository;
     private final BookClient bookClient;
+    private final KafkaTemplate<String, OrderCreatedEvent> kafkaTemplate;
 
-    public OrderService(OrderRepository orderRepository, BookOrderItemRepository bookOrderItemRepository, BookClient bookClient) {
-        this.orderRepository = orderRepository;
-        this.bookOrderItemRepository = bookOrderItemRepository;
-        this.bookClient = bookClient;
-    }
 
     public OrderResponseDTO placeOrder(OrderRequestDTO orderRequestDTO) {
 
@@ -54,6 +58,8 @@ public class OrderService {
                 totalPrice, OrderStatus.PENDING);
         orderRepository.save(orders);
         bookOrderItemRepository.saveAll(orderItems);
+
+        placeOrderEvent(orders);
 
         return new OrderResponseDTO(orders.getOrderId(), orders.getCustomerId(),
                 orders.getOrderDate(), orders.getTotalPrice(), orders.getStatus(), orderItems);
@@ -100,6 +106,21 @@ public class OrderService {
 
     private String generateBookOrderItemId() {
         return "boi" + UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    private void placeOrderEvent(Orders orders) {
+        try {
+            OrderCreatedEvent event = new OrderCreatedEvent();
+            event.setOrderId(orders.getOrderId());
+            event.setCustomerId(orders.getCustomerId());
+            event.setTotalAmount(String.valueOf(orders.getTotalPrice()));
+            log.info("Sending OrderCreatedEvent to Kafka for orderId: {}", orders.getOrderId());
+            kafkaTemplate.send("order-events", event);
+            log.info("OrderCreatedEvent sent to Kafka for orderId: {}", orders.getOrderId());
+        } catch (Exception e) {
+            log.error("Failed to send OrderCreatedEvent to Kafka for orderId: {}", orders.getOrderId(), e);
+            throw new RuntimeException("Failed to send OrderCreatedEvent to Kafka", e);
+        }
     }
 
 }
