@@ -25,9 +25,11 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
 
-//    private final OrderClient orderClient;
+    private final OrderClient orderClient;
 
     private final KafkaTemplate<String,String> kafkaTemplate;
+
+
 
     private final ObjectMapper objectMapper;
 
@@ -76,6 +78,7 @@ public class PaymentService {
             paymentResponseDTO.setPaymentStatus(payment.getPaymentStatus());
             paymentResponseDTO.setTransactionId(payment.getTransactionId());
             paymentResponseDTO.setPaymentDate(payment.getPaymentDate());
+            paymentResponseDTO.setCustomerId(payment.getCustomerId());
 
             return paymentResponseDTO;
     }
@@ -99,6 +102,7 @@ public class PaymentService {
         paymentResponseDTO.setPaymentStatus(payment.getPaymentStatus());
         paymentResponseDTO.setTransactionId(payment.getTransactionId());
         paymentResponseDTO.setPaymentDate(payment.getPaymentDate());
+        paymentResponseDTO.setCustomerId(payment.getCustomerId());
 
         return paymentResponseDTO;
     }
@@ -110,6 +114,7 @@ public class PaymentService {
             event.setPaymentStatus(status);
             String eventString = objectMapper.writeValueAsString(event);
             kafkaTemplate.send("payment-events", eventString);
+
             log.info("Sent PaymentCompletedEvent to Kafka for orderId: {}", orderId);
         } catch (Exception e) {
             log.error("Failed to update payment status for order: {}", orderId);

@@ -18,7 +18,7 @@ public class PaymentListener {
     private final OrderService orderService;
     private final ObjectMapper objectMapper;
 
-    @KafkaListener(topics ="payment-events", groupId = "order-service-group", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics ="payment-events", groupId = "order-service-group")
     public void consume(String event){
         try {
             log.info("Received PaymentCompletedEvent : {}", event);
@@ -27,8 +27,13 @@ public class PaymentListener {
 
 
             orderService.updateOrderStatus(event1.getOrderId(), OrderStatus.valueOf(event1.getPaymentStatus()));
+
             log.info("Order status updated for orderId: {}", event1.getOrderId());
-        } catch(JsonProcessingException e) {
+
+        }
+
+
+         catch(JsonProcessingException e) {
             log.error("Error deserializing PaymentCompletedEvent: {}", e.getMessage());
             throw new RuntimeException("Error deserializing PaymentCompletedEvent",e);
         }

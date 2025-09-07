@@ -54,15 +54,15 @@ public class OrderService {
 
 
         }
-        Orders orders = new Orders(orderId, orderRequestDTO.getCustomerId(),LocalDateTime.now(),
+        Orders order = new Orders(orderId, orderRequestDTO.getCustomerId(),LocalDateTime.now(),
                 totalPrice, OrderStatus.PENDING);
-        orderRepository.save(orders);
+        orderRepository.save(order);
         bookOrderItemRepository.saveAll(orderItems);
 
-        placeOrderEvent(orders);
+        placeOrderEvent(order);
 
-        return new OrderResponseDTO(orders.getOrderId(), orders.getCustomerId(),
-                orders.getOrderDate(), orders.getTotalPrice(), orders.getStatus(), orderItems);
+        return new OrderResponseDTO(order.getOrderId(), order.getCustomerId(),
+                order.getOrderDate(), order.getTotalPrice(), order.getStatus(), orderItems);
 
     }
 
@@ -108,17 +108,17 @@ public class OrderService {
         return "boi" + UUID.randomUUID().toString().substring(0, 8);
     }
 
-    private void placeOrderEvent(Orders orders) {
+    private void placeOrderEvent(Orders order) {
         try {
             OrderCreatedEvent event = new OrderCreatedEvent();
-            event.setOrderId(orders.getOrderId());
-            event.setCustomerId(orders.getCustomerId());
-            event.setTotalAmount(String.valueOf(orders.getTotalPrice()));
-            log.info("Sending OrderCreatedEvent to Kafka for orderId: {}", orders.getOrderId());
+            event.setOrderId(order.getOrderId());
+            event.setCustomerId(order.getCustomerId());
+            event.setTotalAmount(String.valueOf(order.getTotalPrice()));
+            log.info("Sending OrderCreatedEvent to Kafka for orderId: {}", order.getOrderId());
             kafkaTemplate.send("order-events", event);
-            log.info("OrderCreatedEvent sent to Kafka for orderId: {}", orders.getOrderId());
+            log.info("OrderCreatedEvent sent to Kafka for orderId: {}", order.getOrderId());
         } catch (Exception e) {
-            log.error("Failed to send OrderCreatedEvent to Kafka for orderId: {}", orders.getOrderId(), e);
+            log.error("Failed to send OrderCreatedEvent to Kafka for orderId: {}", order.getOrderId(), e);
             throw new RuntimeException("Failed to send OrderCreatedEvent to Kafka", e);
         }
     }
