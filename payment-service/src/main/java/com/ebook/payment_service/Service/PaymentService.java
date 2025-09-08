@@ -46,8 +46,11 @@ public class PaymentService {
        payment.setCustomerId(paymentRequestDTO.getCustomerId());
        payment.setAmount(paymentRequestDTO.getAmount());
        payment.setPaymentDate(LocalDate.now());
+
        Double getAmount = orderClient.getOrderAmount(paymentRequestDTO.getOrderId());
+
        boolean paymentSuccess = new Random().nextBoolean();
+
          if(paymentSuccess && getAmount!=null && getAmount.equals(paymentRequestDTO.getAmount())) {
               payment.setPaymentStatus(SUCCESS);
               payment.setTransactionId(UUID.randomUUID().toString());
