@@ -1,5 +1,7 @@
 package com.ebook.payment_service.Service;
 
+import com.ebook.payment_service.DTO.GetOrderByOrderIdRequest;
+import com.ebook.payment_service.DTO.OrderFromOrderServiceResponse;
 import com.ebook.payment_service.DTO.OrderStatusUpdateRequest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -35,6 +37,27 @@ public class OrderClient {
         );
 
         System.out.println("Order status updated: " + response.getBody());
+    }
+
+    public Double getOrderAmount(String OrderId){
+
+        GetOrderByOrderIdRequest request = new GetOrderByOrderIdRequest(OrderId);
+
+        HttpEntity<GetOrderByOrderIdRequest> requestEntity = new HttpEntity<>(request);
+
+        String url = "http://localhost:6001/orders/id/{orderId}";
+
+        ResponseEntity<OrderFromOrderServiceResponse> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                requestEntity,
+                OrderFromOrderServiceResponse.class,
+                OrderId
+        );
+
+        return response.getBody().getTotalPrice();
+
+
     }
 
 }
