@@ -29,8 +29,6 @@ public class PaymentService {
 
     private final KafkaTemplate<String,String> kafkaTemplate;
 
-
-
     private final ObjectMapper objectMapper;
 
 //    public PaymentService(PaymentRepository paymentRepository, OrderClient orderClient) {
@@ -48,8 +46,9 @@ public class PaymentService {
        payment.setCustomerId(paymentRequestDTO.getCustomerId());
        payment.setAmount(paymentRequestDTO.getAmount());
        payment.setPaymentDate(LocalDate.now());
+       Double getAmount = orderClient.getOrderAmount(paymentRequestDTO.getOrderId());
        boolean paymentSuccess = new Random().nextBoolean();
-         if(paymentSuccess) {
+         if(paymentSuccess && getAmount!=null && getAmount.equals(paymentRequestDTO.getAmount())) {
               payment.setPaymentStatus(SUCCESS);
               payment.setTransactionId(UUID.randomUUID().toString());
 //              orderClient.updateOrderStatus(paymentRequestDTO.getOrderId(), "CONFIRMED");
@@ -65,7 +64,7 @@ public class PaymentService {
          }
          paymentRepository.save(payment);
 
-       String status = paymentSuccess? "CONFIRMED":"CANCELLED";
+       String status = (paymentSuccess && getAmount.equals(paymentRequestDTO.getAmount()))? "CONFIRMED":"CANCELLED";
        log.info("Payment {} successfully processed", paymentId);
 
          updatePaymentStatus(paymentRequestDTO.getOrderId(),status);
