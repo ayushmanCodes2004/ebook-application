@@ -6,6 +6,7 @@ import com.ebook.order_service.Entity.Orders;
 import com.ebook.order_service.Events.OrderCreatedEvent;
 import com.ebook.order_service.Repository.BookOrderItemRepository;
 import com.ebook.order_service.Repository.OrderRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,8 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final BookOrderItemRepository bookOrderItemRepository;
     private final BookClient bookClient;
-    private final KafkaTemplate<String, OrderCreatedEvent> kafkaTemplate;
+    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final ObjectMapper objectMapper;
 
 
     public OrderResponseDTO placeOrder(OrderRequestDTO orderRequestDTO) {
@@ -114,8 +116,9 @@ public class OrderService {
             event.setOrderId(order.getOrderId());
             event.setCustomerId(order.getCustomerId());
             event.setTotalAmount(String.valueOf(order.getTotalPrice()));
+            String eventString = objectMapper.writeValueAsString(event);
             log.info("Sending OrderCreatedEvent to Kafka for orderId: {}", order.getOrderId());
-            kafkaTemplate.send("order-events", event);
+            kafkaTemplate.send("order-events", eventString);
             log.info("OrderCreatedEvent sent to Kafka for orderId: {}", order.getOrderId());
         } catch (Exception e) {
             log.error("Failed to send OrderCreatedEvent to Kafka for orderId: {}", order.getOrderId(), e);
