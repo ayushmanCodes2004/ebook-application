@@ -1,8 +1,9 @@
 package com.ebook.payment_service.Service;
 
-import com.ebook.payment_service.DTO.GetOrderByOrderIdRequest;
+//import com.ebook.payment_service.DTO.GetOrderByOrderIdRequest;
 import com.ebook.payment_service.DTO.OrderFromOrderServiceResponse;
 import com.ebook.payment_service.DTO.OrderStatusUpdateRequest;
+import org.apache.hc.client5.http.entity.mime.Header;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -41,16 +42,17 @@ public class OrderClient {
 
     public Double getOrderAmount(String OrderId){
 
-        GetOrderByOrderIdRequest request = new GetOrderByOrderIdRequest(OrderId);
-
-        HttpEntity<GetOrderByOrderIdRequest> requestEntity = new HttpEntity<>(request);
+//        GetOrderByOrderIdRequest request = new GetOrderByOrderIdRequest(OrderId);
+//
+//        HttpEntity<GetOrderByOrderIdRequest> requestEntity = new HttpEntity<>(request);
 
         String url = "http://localhost:6001/orders/id/{orderId}";
 
         ResponseEntity<OrderFromOrderServiceResponse> response = restTemplate.exchange(
                 url,
                 HttpMethod.GET,
-                requestEntity,
+//              requestEntity,
+                null,
                 OrderFromOrderServiceResponse.class,
                 OrderId
         );
