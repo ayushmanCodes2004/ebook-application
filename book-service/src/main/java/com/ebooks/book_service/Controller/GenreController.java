@@ -23,7 +23,7 @@ public class GenreController {
         return genreServiceImpl.createGenre(genreRequestDTO);
     }
 
-    @GetMapping
+    @GetMapping()
     public List<ExtendedGenreResponseDTO> getAllGenres() {
         return genreServiceImpl.getAllGenres();
     }
