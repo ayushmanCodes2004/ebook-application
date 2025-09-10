@@ -46,7 +46,7 @@ public class OrderClient {
 //
 //        HttpEntity<GetOrderByOrderIdRequest> requestEntity = new HttpEntity<>(request);
 
-        String url = "http://localhost:6001/orders/id/{orderId}";
+        String url = "http://localhost:6001/orders/id/{OrderId}";
 
         ResponseEntity<OrderFromOrderServiceResponse> response = restTemplate.exchange(
                 url,
