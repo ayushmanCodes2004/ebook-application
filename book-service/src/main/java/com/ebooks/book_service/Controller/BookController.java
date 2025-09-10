@@ -22,7 +22,7 @@ public class BookController {
         return bookServiceImpl.createBook(bookRequestDTO);
     }
 
-    @GetMapping
+    @GetMapping()
     public List<BookResponseDTO> getAllBooks() {
         return bookServiceImpl.getAllBooks();
     }
