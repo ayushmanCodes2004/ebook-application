@@ -1,0 +1,26 @@
+package com.ebooks.apigateway.Filter;
+
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.function.Predicate;
+
+@Component
+public class RouteValidator {
+
+    // Public endpoints without JWT (only GET requests allowed without token)
+    public static final List<String> openApiEndpoints = List.of(
+            "/api/v1/auth/register",
+            "/api/v1/auth/login"
+    );
+
+    public Predicate<ServerHttpRequest> isSecured =
+            request ->
+                openApiEndpoints.
+                        stream().noneMatch(uri -> request.getURI().getPath().contains(uri));
+
+
+
+
+}
