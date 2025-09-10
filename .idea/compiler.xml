@@ -10,21 +10,23 @@
         <module name="apigateway" />
         <module name="discovery-service" />
       </profile>
-      <profile name="Annotation profile for book-service" enabled="true">
+      <profile name="Annotation profile for Auth-Service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
         </processorPath>
-        <module name="book-service" />
         <module name="orders-service" />
         <module name="payment-service" />
+        <module name="book-service" />
+        <module name="Auth-Service" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="Auth-Service" options="-parameters" />
       <module name="apigateway" options="-parameters" />
       <module name="book-service" options="-parameters" />
       <module name="discovery-service" options="-parameters" />
