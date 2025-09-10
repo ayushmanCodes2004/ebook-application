@@ -40,7 +40,9 @@ public class OrderService {
         List<BookOrderItem> orderItems = new ArrayList<>();
 
         for (BookOrderItemRequestDTO bookOrderItemRequestDTO : orderRequestDTO.getOrderedBooks()) {
+
             BookResponseDTO book = bookClient.getBookTitle(bookOrderItemRequestDTO.getBookId());
+
             if(book.getStockQuantity() < bookOrderItemRequestDTO.getQuantity()) {
                 throw new RuntimeException("Insufficient stock for book: " + book.getTitle());
 
