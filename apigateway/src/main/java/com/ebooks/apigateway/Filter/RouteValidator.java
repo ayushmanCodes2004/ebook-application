@@ -9,7 +9,6 @@ import java.util.function.Predicate;
 @Component
 public class RouteValidator {
 
-    // Public endpoints without JWT (only GET requests allowed without token)
     public static final List<String> openApiEndpoints = List.of(
             "/api/v1/auth/register",
             "/api/v1/auth/login"
