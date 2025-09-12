@@ -1,16 +1,20 @@
 package com.ebooks.book_service.Service.impl;
 
-import com.ebooks.book_service.DTO.ExtendedGenreResponseDTO;
-import com.ebooks.book_service.DTO.GenreRequestDTO;
-import com.ebooks.book_service.DTO.GenreResponseDTO;
+import com.ebooks.book_service.DTO.*;
 import com.ebooks.book_service.Entity.Book;
 import com.ebooks.book_service.Entity.Genre;
 import com.ebooks.book_service.Mapper.BookMapping;
 import com.ebooks.book_service.Mapper.GenreMapping;
+import com.ebooks.book_service.Repository.BookRepository;
 import com.ebooks.book_service.Repository.GenreRepository;
+import com.ebooks.book_service.Service.BookService;
 import com.ebooks.book_service.Service.GenreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -28,6 +32,7 @@ public class GenreServiceImpl implements GenreService {
     }
 
     @Override
+    @Cacheable(value = "allgenres")
     public List<ExtendedGenreResponseDTO> getAllGenres() {
         List<Genre> genreList = genreRepository.findAll();
         List<ExtendedGenreResponseDTO> genreResponseDTOS = new ArrayList<>();
@@ -41,6 +46,7 @@ public class GenreServiceImpl implements GenreService {
     }
 
     @Override
+    @Cacheable(value = "genres", key  = "#genreId")
     public ExtendedGenreResponseDTO getGenreById(Long genreId) {
         Genre genre = genreRepository.findById(genreId)
                 .orElseThrow(() -> new RuntimeException("Genre not found with id: " + genreId));
@@ -48,6 +54,7 @@ public class GenreServiceImpl implements GenreService {
     }
 
     @Override
+    @CacheEvict(value = "allgenres", allEntries = true)
     public GenreResponseDTO createGenre(GenreRequestDTO genreRequestDTO) {
         Genre genre = GenreMapping.toGenreEntity(genreRequestDTO);
         Genre savedGenre = genreRepository.save(genre);
@@ -55,6 +62,8 @@ public class GenreServiceImpl implements GenreService {
     }
 
     @Override
+    @CachePut(value = "genres", key = "#genreId")
+    @CacheEvict(value = "allgenres", allEntries = true)
     public GenreResponseDTO updateGenre(Long genreId, GenreRequestDTO genreRequestDTO) {
         Genre genre = genreRepository.findById(genreId)
                 .orElseThrow(() -> new RuntimeException("Genre not found with id: " + genreId));
@@ -64,6 +73,10 @@ public class GenreServiceImpl implements GenreService {
     }
 
     @Override
+    @Caching(evict = {@CacheEvict(value = "genres", key = "#genreId"),
+            @CacheEvict(value = "allgenres", allEntries = true),
+            @CacheEvict(value = "books", allEntries = true),
+            @CacheEvict(value = "allbooks", allEntries = true)})
     public String deleteGenre(Long genreId) {
         if (!genreRepository.existsById(genreId)) {
             throw new RuntimeException("Genre not found with id: " + genreId);

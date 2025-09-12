@@ -8,7 +8,12 @@ import com.ebooks.book_service.Repository.BookRepository;
 import com.ebooks.book_service.Repository.GenreRepository;
 import com.ebooks.book_service.Service.BookService;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.annotations.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,6 +28,7 @@ public class BookServiceImpl implements BookService {
 
 
     @Override
+    @Cacheable(value = "allbooks")
     public List<BookResponseDTO> getAllBooks() {
        List<BookResponseDTO> fetchedBooks = bookRepository.findAll().stream()
                 .map(this::convertToResponseDTO)
@@ -31,6 +37,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @Cacheable(value = "books", key = "#bookId")
     public BookResponseDTO getBookById(Long bookId) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Book not found with id: " + bookId));
@@ -40,6 +47,8 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @Caching(evict = {@CacheEvict(value = "allbooks", allEntries = true),
+            @CacheEvict(value = "allgenres", allEntries = true)})
     public BookResponseDTO createBook(BookRequestDTO bookRequestDTO) {
       Genre fetchedGenre = genreRepository.findById(bookRequestDTO.getGenreId()).orElseThrow(() -> new RuntimeException("Genre not found"));
         Book book = new Book();
@@ -55,6 +64,9 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @CachePut(value = "books", key ="#bookId")
+    @Caching(evict = {@CacheEvict(value = "allbooks", allEntries = true),
+    @CacheEvict(value = "allgenres", allEntries = true)})
     public BookResponseDTO updateStockQuantity(Long bookId, Integer stockQuantity) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Book not found with id: " + bookId));
@@ -64,6 +76,11 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "books", key ="#bookId"),
+            @CacheEvict(value = "allbooks", allEntries = true),
+            @CacheEvict(value = "allgenres", allEntries = true)
+    })
     public String deleteBook(Long bookId) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Book not found with id: " + bookId));
