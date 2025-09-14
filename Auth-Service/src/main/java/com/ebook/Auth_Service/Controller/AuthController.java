@@ -37,12 +37,6 @@ public class AuthController {
         }
         String generatedJwtToken = authService.generateToken(authenticatedUserName);
         return new ResponseEntity<>(generatedJwtToken,HttpStatus.OK);
-
-
-
-
-
-
     }
 
 

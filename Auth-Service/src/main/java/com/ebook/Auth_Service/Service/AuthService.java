@@ -17,6 +17,8 @@ public class AuthService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final EmailService emailService;
+
     public String registerUser(UserDTO user){
 
         UserCredential userCredential = new UserCredential();
@@ -25,6 +27,27 @@ public class AuthService {
         userCredential.setEmail(user.getEmail());
 
         userCredentialRepository.save(userCredential);
+
+        String subject = "Welcome to E-Book Platform!";
+        String body = "Dear " + userCredential.getUserName() + ",\n\n"
+                + "Welcome to the E-Book Store! 🎉\n\n"
+                + "We are thrilled to have you join our community of passionate readers. "
+                + "With your new account, you can now explore thousands of e-books across various genres, "
+                + "manage your personal library, and enjoy seamless reading anytime, anywhere.\n\n"
+                + "Here are a few things you can do right away:\n"
+                + "• Browse our wide collection of e-books.\n"
+                + "• Add your favorite titles to your wishlist or library.\n"
+                + "• Track your orders and manage your purchases with ease.\n"
+                + "• Stay updated with our latest releases and special offers.\n\n"
+                + "Your journey into the world of endless stories, knowledge, and imagination begins here. "
+                + "We’re committed to making your reading experience delightful and enriching.\n\n"
+                + "If you have any questions or need assistance, our support team is always ready to help you.\n\n"
+                + "Happy Reading! 📚\n"
+                + "Warm Regards,\n"
+                + "The E-Book Team";
+        ;
+        emailService.sendEmail(userCredential.getEmail(), subject, body);
+
         return "User registered successfully";
     }
 
