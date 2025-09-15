@@ -15,6 +15,7 @@ public class OrderFromOrderServiceResponse {
 
     private String orderId;
     private double totalPrice;
+    private String customerId;
 
 
 

@@ -29,9 +29,18 @@ public class OrderService {
     private final BookClient bookClient;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
+    private final AuthClient authClient;
 
 
     public OrderResponseDTO placeOrder(OrderRequestDTO orderRequestDTO) {
+
+        String customerId = orderRequestDTO.getCustomerId();
+
+        String validCustomer = authClient.validCustomerId(customerId);
+
+        if(customerId==null || !customerId.equals(validCustomer)) {
+            throw new RuntimeException("Invalid customer ID: " + customerId);
+        }
 
         String orderId = generateOrderId();
 
@@ -126,6 +135,19 @@ public class OrderService {
             log.error("Failed to send OrderCreatedEvent to Kafka for orderId: {}", order.getOrderId(), e);
             throw new RuntimeException("Failed to send OrderCreatedEvent to Kafka", e);
         }
+    }
+
+    public OrderResponseDTO getOrderByCustomerIdForValidation(String customerId) {
+        List<Orders> orders = orderRepository.findByCustomerId(customerId);
+        if (orders.isEmpty()) {
+            throw new RuntimeException("No orders found for customer with id: " + customerId);
+        }
+
+        Orders order = orders.get(0); // Get the first order for simplicity
+        List<BookOrderItem> bookOrderItems = bookOrderItemRepository.findByOrderId(order.getOrderId());
+
+        return new OrderResponseDTO(order.getOrderId(), order.getCustomerId(),
+                order.getOrderDate(), order.getTotalPrice(), order.getStatus(), bookOrderItems);
     }
 
 }

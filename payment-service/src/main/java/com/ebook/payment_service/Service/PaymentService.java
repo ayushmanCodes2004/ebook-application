@@ -27,9 +27,13 @@ public class PaymentService {
 
     private final OrderClient orderClient;
 
+    private final AuthClient authClient;
+
     private final KafkaTemplate<String,String> kafkaTemplate;
 
     private final ObjectMapper objectMapper;
+
+    private final EmailService emailService;
 
 //    public PaymentService(PaymentRepository paymentRepository, OrderClient orderClient) {
 //        this.paymentRepository = paymentRepository;
@@ -37,6 +41,16 @@ public class PaymentService {
 //    }
 
     public PaymentResponseDTO processPayment(PaymentRequestDTO paymentRequestDTO){
+
+        String customerId = paymentRequestDTO.getCustomerId();
+
+        String validCustomer = orderClient.getOrderCustomerId(customerId);
+
+        String validEmail = authClient.validEmail(customerId);
+
+        if(customerId==null || !customerId.equals(validCustomer)) {
+            throw new RuntimeException("Invalid customer ID: " + customerId);
+        }
 
        String paymentId = generatePaymentId();
 
@@ -81,6 +95,30 @@ public class PaymentService {
             paymentResponseDTO.setTransactionId(payment.getTransactionId());
             paymentResponseDTO.setPaymentDate(payment.getPaymentDate());
             paymentResponseDTO.setCustomerId(payment.getCustomerId());
+
+            if(status=="CONFIRMED"){
+                String subject = "Payment Confirmation - Order #" + payment.getOrderId();
+
+                String body =
+                        "Dear Customer,\n\n" +
+                                "We are pleased to inform you that your payment has been successfully processed.\n\n" +
+                                "📌 Payment Details:\n" +
+                                "• Payment ID: " + paymentId + "\n" +
+                                "• Order ID: " + payment.getOrderId() + "\n" +
+                                "• Transaction ID: " + payment.getTransactionId() + "\n" +
+                                "• Amount Paid: ₹" + payment.getAmount() + "\n" +
+                                "• Payment Status: " + payment.getPaymentStatus() + "\n" +
+                                "• Payment Date: " + payment.getPaymentDate() + "\n" +
+                                "• Customer ID: " + payment.getCustomerId() + "\n\n" +
+                                "Thank you for shopping with us. You can track your order status anytime from your account.\n\n" +
+                                "If you have any queries, feel free to reach out to our support team.\n\n" +
+                                "Best regards,\n" +
+                                "The E-Book Store Team";
+
+
+                emailService.sendEmail(validEmail, subject, body);
+            }
+
 
             return paymentResponseDTO;
     }

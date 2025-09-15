@@ -20,4 +20,5 @@ public class UserCredential {
     private String userName;
     private String password;
     private String email;
+    private String customerId;
 }

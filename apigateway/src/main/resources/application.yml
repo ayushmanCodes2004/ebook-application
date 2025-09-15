@@ -10,7 +10,8 @@ spring:
           routes:
             - id: book-service-route
 #              uri: lb://book-service
-              uri: http://localhost:6000
+#              uri: http://localhost:6000
+              uri: lb://book-service
               predicates:
                 - Path=/api/v1/books/**, /api/v1/genres/**
               filters:
@@ -30,7 +31,8 @@ spring:
 
 
             - id: order-service-route
-              uri: http://localhost:6001
+#              uri: http://localhost:6001
+              uri: lb://orders-service
               predicates:
                 - Path=/api/v1/orders/**
               filters:
@@ -41,7 +43,8 @@ spring:
 
 
             - id: payment-service-route
-              uri: http://localhost:6002
+#              uri: http://localhost:6002
+              uri: lb://payment-service
               predicates:
                 - Path=/api/v1/payments/**
               filters:
@@ -53,7 +56,8 @@ spring:
 
 
             - id: auth-service-route
-              uri: http://localhost:6003
+#              uri: http://localhost:6003
+              uri: lb://auth-service
               predicates:
                   - Path=/api/v1/auth/**
               filters:
@@ -65,3 +69,10 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+
+
+  instance:
+    prefer-ip-address: true   # IP use karega instead of hostname
+    ip-address: 127.0.0.1      # force localhost
+

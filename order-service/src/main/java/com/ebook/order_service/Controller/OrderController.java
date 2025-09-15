@@ -57,5 +57,10 @@ public class OrderController {
         return new ResponseEntity<>("Orders status updated to "+status.name(), HttpStatus.OK);
     }
 
+    @GetMapping("/validateCustomer/{customerId}")
+    public OrderResponseDTO geByCustomerId(@PathVariable String customerId) {
+        return orderService.getOrderByCustomerIdForValidation(customerId);
+    }
+
 
 }
