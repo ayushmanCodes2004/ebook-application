@@ -12,4 +12,20 @@ public class FallBackController {
     public ResponseEntity<String> fallback(){
         return new ResponseEntity<>("Book-Service is temporarily unavailable. Please try again later.", HttpStatus.OK);
     }
+
+    @GetMapping("/fallback/order")
+    public ResponseEntity<String> orderFallback(){
+        return new ResponseEntity<>("Order-Service is temporarily unavailable. Please try again later.", HttpStatus.OK);
+    }
+
+    @GetMapping("/fallback/auth")
+    public ResponseEntity<String> authFallback(){
+        return new ResponseEntity<>("Auth-Service is temporarily unavailable. Please try again later.", HttpStatus.OK);
+    }
+
+    @GetMapping("/fallback/payment")
+    public ResponseEntity<String> paymentFallback(){
+        return new ResponseEntity<>("Payment-Service is temporarily unavailable. Please try again later.", HttpStatus.OK);
+    }
+
 }

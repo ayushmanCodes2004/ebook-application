@@ -62,7 +62,7 @@ public class OrderClient {
 
     }
 
-    public String getOrderCustomerId(String customerId) {
+    public OrderFromOrderServiceResponse getOrderCustomerId(String customerId) {
 
         String url = "http://orders-service/orders/validateCustomer/{customerId}";
 
@@ -74,7 +74,7 @@ public class OrderClient {
                 customerId
         );
 
-        return response.getBody().getCustomerId();
+        return response.getBody();
 
     }
 

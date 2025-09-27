@@ -22,10 +22,6 @@ spring:
 #                    key-Resolver: "#{@ipKeyResolver}"
 #                    redis-rate-limiter.replenishRate: 2
 #                    redis-rate-limiter.burstCapacity: 2
-#                - name: CircuitBreaker
-#                  args:
-#                     name: bookServiceCircuitBreaker
-#                     fallbackUri: forward:/fallback/book
 
 
 
@@ -62,7 +58,6 @@ spring:
                   - Path=/api/v1/auth/**
               filters:
                   - RewritePath=/api/v1/(?<segment>.*), /${segment}
-
 
 
 eureka:

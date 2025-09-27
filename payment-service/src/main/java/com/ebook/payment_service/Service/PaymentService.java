@@ -1,5 +1,6 @@
 package com.ebook.payment_service.Service;
 
+import com.ebook.payment_service.DTO.OrderFromOrderServiceResponse;
 import com.ebook.payment_service.DTO.PaymentRequestDTO;
 import com.ebook.payment_service.DTO.PaymentResponseDTO;
 import com.ebook.payment_service.DTO.PaymentStatus;
@@ -44,12 +45,16 @@ public class PaymentService {
 
         String customerId = paymentRequestDTO.getCustomerId();
 
-        String validCustomer = orderClient.getOrderCustomerId(customerId);
+        OrderFromOrderServiceResponse validCustomer = orderClient.getOrderCustomerId(customerId);
 
         String validEmail = authClient.validEmail(customerId);
 
-        if(customerId==null || !customerId.equals(validCustomer)) {
-            throw new RuntimeException("Invalid customer ID: " + customerId);
+//        if(customerId==null || !customerId.equals(validCustomer)) {
+//            throw new RuntimeException("Invalid customer ID: " + customerId);
+//        }
+
+        if(validCustomer.getOrderId() == null || !validCustomer.getOrderId().equals(paymentRequestDTO.getOrderId())){
+            throw new RuntimeException("Order ID does not belong to the customer");
         }
 
        String paymentId = generatePaymentId();
