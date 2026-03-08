@@ -31,4 +31,22 @@ public class AuthClient {
         return response.getBody().getCustomerId();
 
     }
+
+    public String validEmail(String customerId) {
+
+        String url = "http://auth-service/auth/validateCustomerId/{customerId}";
+
+        ResponseEntity<UserResponseDTO> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                UserResponseDTO.class,
+                customerId
+
+
+        );
+
+        return response.getBody().getEmail();
+
+    }
 }
