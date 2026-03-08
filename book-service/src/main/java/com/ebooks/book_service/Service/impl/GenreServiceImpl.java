@@ -3,6 +3,7 @@ package com.ebooks.book_service.Service.impl;
 import com.ebooks.book_service.DTO.*;
 import com.ebooks.book_service.Entity.Book;
 import com.ebooks.book_service.Entity.Genre;
+import com.ebooks.book_service.Exception.GenreNotFoundException;
 import com.ebooks.book_service.Mapper.BookMapping;
 import com.ebooks.book_service.Mapper.GenreMapping;
 import com.ebooks.book_service.Repository.BookRepository;
@@ -49,7 +50,7 @@ public class GenreServiceImpl implements GenreService {
     @Cacheable(value = "genres", key  = "#genreId")
     public ExtendedGenreResponseDTO getGenreById(Long genreId) {
         Genre genre = genreRepository.findById(genreId)
-                .orElseThrow(() -> new RuntimeException("Genre not found with id: " + genreId));
+                .orElseThrow(() -> new GenreNotFoundException("Genre not found with id: " + genreId));
         return convertToExtendedGenreResponseDTO(genre);
     }
 
@@ -66,7 +67,7 @@ public class GenreServiceImpl implements GenreService {
     @CacheEvict(value = "allgenres", allEntries = true)
     public GenreResponseDTO updateGenre(Long genreId, GenreRequestDTO genreRequestDTO) {
         Genre genre = genreRepository.findById(genreId)
-                .orElseThrow(() -> new RuntimeException("Genre not found with id: " + genreId));
+                .orElseThrow(() -> new GenreNotFoundException("Genre not found with id: " + genreId));
         genre.setGenreName(genreRequestDTO.getGenreName());
         Genre updatedGenre = genreRepository.save(genre);
         return GenreMapping.toGenreResponseDTO(updatedGenre);
@@ -79,7 +80,7 @@ public class GenreServiceImpl implements GenreService {
             @CacheEvict(value = "allbooks", allEntries = true)})
     public String deleteGenre(Long genreId) {
         if (!genreRepository.existsById(genreId)) {
-            throw new RuntimeException("Genre not found with id: " + genreId);
+            throw new GenreNotFoundException("Genre not found with id: " + genreId);
         }
         genreRepository.deleteById(genreId);
         return "Genre with ID " + genreId + " has been deleted successfully.";

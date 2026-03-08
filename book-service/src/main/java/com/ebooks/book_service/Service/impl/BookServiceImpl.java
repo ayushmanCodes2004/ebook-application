@@ -4,6 +4,9 @@ import com.ebooks.book_service.DTO.BookRequestDTO;
 import com.ebooks.book_service.DTO.BookResponseDTO;
 import com.ebooks.book_service.Entity.Book;
 import com.ebooks.book_service.Entity.Genre;
+import com.ebooks.book_service.Exception.BookNotFoundException;
+import com.ebooks.book_service.Exception.GenreNotFoundException;
+import com.ebooks.book_service.Exception.InvalidStockQuantityException;
 import com.ebooks.book_service.Repository.BookRepository;
 import com.ebooks.book_service.Repository.GenreRepository;
 import com.ebooks.book_service.Service.BookService;
@@ -40,7 +43,7 @@ public class BookServiceImpl implements BookService {
     @Cacheable(value = "books", key = "#bookId")
     public BookResponseDTO getBookById(Long bookId) {
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new RuntimeException("Book not found with id: " + bookId));
+                .orElseThrow(() -> new BookNotFoundException("Book not found with id: " + bookId));
         return convertToResponseDTO(book);
 
 
@@ -50,7 +53,13 @@ public class BookServiceImpl implements BookService {
     @Caching(evict = {@CacheEvict(value = "allbooks", allEntries = true),
             @CacheEvict(value = "allgenres", allEntries = true)})
     public BookResponseDTO createBook(BookRequestDTO bookRequestDTO) {
-      Genre fetchedGenre = genreRepository.findById(bookRequestDTO.getGenreId()).orElseThrow(() -> new RuntimeException("Genre not found"));
+      Genre fetchedGenre = genreRepository.findById(bookRequestDTO.getGenreId())
+              .orElseThrow(() -> new GenreNotFoundException("Genre not found with id: " + bookRequestDTO.getGenreId()));
+        
+        if (bookRequestDTO.getStockQuantity() < 0) {
+            throw new InvalidStockQuantityException("Stock quantity cannot be negative");
+        }
+        
         Book book = new Book();
         book.setTitle(bookRequestDTO.getTitle());
         book.setAuthor(bookRequestDTO.getAuthor());
@@ -69,8 +78,15 @@ public class BookServiceImpl implements BookService {
     @CacheEvict(value = "allgenres", allEntries = true)})
     public BookResponseDTO updateStockQuantity(Long bookId, Integer stockQuantity) {
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new RuntimeException("Book not found with id: " + bookId));
-        book.setStockQuantity(book.getStockQuantity()+ stockQuantity);
+                .orElseThrow(() -> new BookNotFoundException("Book not found with id: " + bookId));
+        
+        int newStockQuantity = book.getStockQuantity() + stockQuantity;
+        if (newStockQuantity < 0) {
+            throw new InvalidStockQuantityException("Insufficient stock. Current stock: " + book.getStockQuantity() + ", requested change: " + stockQuantity);
+        }
+        
+        book.setStockQuantity(newStockQuantity);
+        book.setIsAvailable(newStockQuantity > 0);
         Book updatedBook = bookRepository.save(book);
         return convertToResponseDTO(updatedBook);
     }
@@ -83,7 +99,7 @@ public class BookServiceImpl implements BookService {
     })
     public String deleteBook(Long bookId) {
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new RuntimeException("Book not found with id: " + bookId));
+                .orElseThrow(() -> new BookNotFoundException("Book not found with id: " + bookId));
         bookRepository.delete(book);
         return "Book with id: " + bookId + " has been deleted successfully.";
     }

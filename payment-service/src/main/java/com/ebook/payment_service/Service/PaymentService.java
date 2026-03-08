@@ -6,6 +6,7 @@ import com.ebook.payment_service.DTO.PaymentResponseDTO;
 import com.ebook.payment_service.DTO.PaymentStatus;
 import com.ebook.payment_service.Entity.Payment;
 import com.ebook.payment_service.Events.PaymentCompletedEvent;
+import com.ebook.payment_service.Exception.*;
 import com.ebook.payment_service.Repository.PaymentRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,7 @@ public class PaymentService {
 
     private final ObjectMapper objectMapper;
 
-    private final EmailService emailService;
+    private final EmailPublisher emailPublisher;
 
 //    public PaymentService(PaymentRepository paymentRepository, OrderClient orderClient) {
 //        this.paymentRepository = paymentRepository;
@@ -54,7 +55,7 @@ public class PaymentService {
 //        }
 
         if(validCustomer.getOrderId() == null || !validCustomer.getOrderId().equals(paymentRequestDTO.getOrderId())){
-            throw new RuntimeException("Order ID does not belong to the customer");
+            throw new OrderMismatchException("Order ID does not belong to the customer: " + customerId);
         }
 
        String paymentId = generatePaymentId();
@@ -121,7 +122,7 @@ public class PaymentService {
                                 "The E-Book Store Team";
 
 
-                emailService.sendEmail(validEmail, subject, body);
+                emailPublisher.publishEmailMessage(validEmail, subject, body);
             }
 
 
@@ -138,7 +139,7 @@ public class PaymentService {
     public PaymentResponseDTO getPaymentByOrderId(String orderId) {
         Payment payment = paymentRepository.findByOrderId(orderId);
         if (payment == null) {
-            return null;
+            throw new PaymentNotFoundException("Payment not found for order ID: " + orderId);
         }
         PaymentResponseDTO paymentResponseDTO = new PaymentResponseDTO();
         paymentResponseDTO.setPaymentId(payment.getPaymentId());
@@ -163,7 +164,7 @@ public class PaymentService {
             log.info("Sent PaymentCompletedEvent to Kafka for orderId: {}", orderId);
         } catch (Exception e) {
             log.error("Failed to update payment status for order: {}", orderId);
-            throw new RuntimeException("Failed to update payment status ",e);
+            throw new EventPublishingException("Failed to update payment status for order: " + orderId, e);
         }
 
 

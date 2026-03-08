@@ -28,13 +28,11 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<String> loginUser(@RequestBody UserDTO user){
-        Authentication authenticatedUser = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUserName(),user.getPassword()));
-        String authenticatedUserName = authenticatedUser.getName();
-        if(!authenticatedUser.isAuthenticated()){
-            return new ResponseEntity<>("Invalid Credentials", HttpStatus.FORBIDDEN);
-        }
-        String generatedJwtToken = authService.generateToken(authenticatedUserName);
-        return new ResponseEntity<>(generatedJwtToken,HttpStatus.OK);
+        Authentication authenticatedUser = authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(user.getUserName(), user.getPassword())
+        );
+        String generatedJwtToken = authService.generateToken(authenticatedUser.getName());
+        return new ResponseEntity<>(generatedJwtToken, HttpStatus.OK);
     }
 
     @GetMapping("/validateCustomerId/{customerId}")

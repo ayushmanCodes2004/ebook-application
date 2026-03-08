@@ -1,5 +1,7 @@
 package com.ebooks.apigateway.Filter;
 
+import com.ebooks.apigateway.Exception.InvalidTokenException;
+import com.ebooks.apigateway.Exception.MissingAuthorizationHeaderException;
 import com.ebooks.apigateway.Util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -28,7 +30,7 @@ public class CustomAuthFilter extends AbstractGatewayFilterFactory<CustomAuthFil
             if (validator.isSecured.test(exchange.getRequest())) {
                 //header contains token or not
                 if (!exchange.getRequest().getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
-                    throw new RuntimeException("missing authorization header");
+                    throw new MissingAuthorizationHeaderException("Missing authorization header");
                 }
 
                 String authHeader = exchange.getRequest().getHeaders().get(HttpHeaders.AUTHORIZATION).get(0);
@@ -42,7 +44,7 @@ public class CustomAuthFilter extends AbstractGatewayFilterFactory<CustomAuthFil
 
                 } catch (Exception e) {
                     System.out.println("invalid access...!");
-                    throw new RuntimeException("un authorized access to application");
+                    throw new InvalidTokenException("Unauthorized access to application: Invalid or expired token", e);
                 }
             }
 

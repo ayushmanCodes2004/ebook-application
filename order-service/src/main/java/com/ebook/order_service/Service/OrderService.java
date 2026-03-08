@@ -4,6 +4,7 @@ import com.ebook.order_service.DTO.*;
 import com.ebook.order_service.Entity.BookOrderItem;
 import com.ebook.order_service.Entity.Orders;
 import com.ebook.order_service.Events.OrderCreatedEvent;
+import com.ebook.order_service.Exception.*;
 import com.ebook.order_service.Repository.BookOrderItemRepository;
 import com.ebook.order_service.Repository.OrderRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,7 +40,7 @@ public class OrderService {
         String validCustomer = authClient.validCustomerId(customerId);
 
         if(customerId==null || !customerId.equals(validCustomer)) {
-            throw new RuntimeException("Invalid customer ID: " + customerId);
+            throw new InvalidCustomerException("Invalid customer ID: " + customerId);
         }
 
         String orderId = generateOrderId();
@@ -53,7 +54,8 @@ public class OrderService {
             BookResponseDTO book = bookClient.getBookTitle(bookOrderItemRequestDTO.getBookId());
 
             if(book.getStockQuantity() < bookOrderItemRequestDTO.getQuantity()) {
-                throw new RuntimeException("Insufficient stock for book: " + book.getTitle());
+                throw new InsufficientStockException("Insufficient stock for book: " + book.getTitle() + 
+                        ". Available: " + book.getStockQuantity() + ", Requested: " + bookOrderItemRequestDTO.getQuantity());
 
             }
             bookClient.updateBookStock(bookOrderItemRequestDTO.getBookId(),-bookOrderItemRequestDTO.getQuantity());
@@ -81,7 +83,7 @@ public class OrderService {
 
     public OrderResponseDTO getOrderById(String orderId) {
         Orders orders = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Orders not found with id: " + orderId));
+                .orElseThrow(() -> new OrderNotFoundException("Order not found with id: " + orderId));
 
         List<BookOrderItem> bookOrderItems = bookOrderItemRepository.findByOrderId(orderId);
 
@@ -92,7 +94,7 @@ public class OrderService {
     public List<OrderResponseDTO> getOrderByCustomerId(String customerId) {
         List<Orders> orders = orderRepository.findByCustomerId(customerId);
         if (orders.isEmpty()) {
-            throw new RuntimeException("No orders found for customer with id: " + customerId);
+            throw new OrderNotFoundException("No orders found for customer with id: " + customerId);
         }
 
         List<OrderResponseDTO> orderResponses = new ArrayList<>();
@@ -107,7 +109,7 @@ public class OrderService {
 
     public void updateOrderStatus(String orderId, OrderStatus status) {
         Orders orders = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Orders not found with id: " + orderId));
+                .orElseThrow(() -> new OrderNotFoundException("Order not found with id: " + orderId));
 
         orders.setStatus(status);
         orderRepository.save(orders);
@@ -133,14 +135,14 @@ public class OrderService {
             log.info("OrderCreatedEvent sent to Kafka for orderId: {}", order.getOrderId());
         } catch (Exception e) {
             log.error("Failed to send OrderCreatedEvent to Kafka for orderId: {}", order.getOrderId(), e);
-            throw new RuntimeException("Failed to send OrderCreatedEvent to Kafka", e);
+            throw new EventPublishingException("Failed to send OrderCreatedEvent to Kafka for orderId: " + order.getOrderId(), e);
         }
     }
 
     public OrderResponseDTO getOrderByCustomerIdForValidation(String customerId) {
         List<Orders> orders = orderRepository.findByCustomerId(customerId);
         if (orders.isEmpty()) {
-            throw new RuntimeException("No orders found for customer with id: " + customerId);
+            throw new OrderNotFoundException("No orders found for customer with id: " + customerId);
         }
 
         Orders order = orders.get(0); // Get the first order for simplicity

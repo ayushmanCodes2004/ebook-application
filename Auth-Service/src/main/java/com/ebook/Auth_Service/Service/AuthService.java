@@ -3,6 +3,7 @@ package com.ebook.Auth_Service.Service;
 import com.ebook.Auth_Service.DTO.UserDTO;
 import com.ebook.Auth_Service.DTO.UserResponseDTO;
 import com.ebook.Auth_Service.Entity.UserCredential;
+import com.ebook.Auth_Service.Exception.InvalidCustomerIdException;
 import com.ebook.Auth_Service.Repository.UserCredentialRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,7 +23,7 @@ public class AuthService {
 
     private final PasswordEncoder passwordEncoder;
 
-    private final EmailService emailService;
+    private final EmailPublisher emailPublisher;
 
     public String registerUser(UserDTO user){
 
@@ -58,7 +59,7 @@ public class AuthService {
                 + "The E-Book Team";
 
 
-        emailService.sendEmail(userCredential.getEmail(), subject, body);
+        emailPublisher.publishEmailMessage(userCredential.getEmail(), subject, body);
 
         return "User registered successfully with customerId: " + customerId;
 
@@ -75,8 +76,8 @@ public class AuthService {
 
     public UserResponseDTO validCustomerId(String customerId){
         Optional<UserCredential> userCredential =  userCredentialRepository.findByCustomerId(customerId);
-        if(userCredential == null){
-            throw new RuntimeException("Invalid Customer ID");
+        if(userCredential.isEmpty()){
+            throw new InvalidCustomerIdException("Invalid Customer ID: " + customerId);
         }
 
         UserResponseDTO userResponseDTO = new UserResponseDTO();
